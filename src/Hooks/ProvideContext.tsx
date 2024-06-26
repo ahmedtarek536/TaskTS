@@ -17,7 +17,7 @@ const initProducts: ProductType[] = [
     price: 9.99,
   },
   {
-    title: "Premium",
+    title: "Premium Widget",
     img: "https://m.media-amazon.com/images/I/71kbRVr8YfL._AC_UL480_FMwebp_QL65_.jpg",
     price: 19.99,
   },
@@ -52,42 +52,38 @@ function ProvideContext({ children }: ProvideContextProps) {
   const [pageIsProducts, setPageIsProducts] = useState<boolean>(true);
   const [products, setProducts] = useState<ProductType[]>(initProducts);
   const [cart, setCart] = useState<CartType[]>([]);
-  const totalItems: number = cart.reduce(
-    (prev: number, current: CartType) => prev + current.num,
-    0
-  );
-  const totalPrices: number = cart.reduce(
-    (prev: number, current: CartType) => prev + current.num * current.price,
+
+  const totalItems = cart.reduce((prev, current) => prev + current.num, 0);
+  const totalPrices = cart.reduce(
+    (prev, current) => prev + current.num * current.price,
     0
   );
 
-  // add item to cart
   function addToCart(product: ProductType): void {
-    const inCart = cart.find((item) => item.title === product.title);
-    if (inCart) {
-      setCart((prev) =>
-        prev.map((item) => {
-          if (item.title === product.title && item.num < 10) {
-            return { ...item, num: item.num + 1 };
-          } else {
-            return item;
-          }
-        })
+    setCart((prevCart) => {
+      const existingProduct = prevCart.find(
+        (item) => item.title === product.title
       );
-    } else {
-      setCart((prev) => [...prev, { ...product, num: 1 }]);
-    }
+      if (existingProduct && existingProduct.num < 10) {
+        return prevCart.map((item) =>
+          item.title === product.title ? { ...item, num: item.num + 1 } : item
+        );
+      } else if (!existingProduct) {
+        return [...prevCart, { ...product, num: 1 }];
+      }
+      return prevCart;
+    });
   }
 
-  // remove item from cart
   function removeFromCart(product: CartType): void {
-    setCart((items) => items.filter((item) => item.title !== product.title));
+    setCart((prevCart) =>
+      prevCart.filter((item) => item.title !== product.title)
+    );
   }
 
-  // update item in cart
   function updateItemInCart(product: CartType, newNum: number): void {
-    setCart((items) =>
-      items.map((item) =>
+    setCart((prevCart) =>
+      prevCart.map((item) =>
         item.title === product.title ? { ...item, num: newNum } : item
       )
     );
@@ -95,26 +91,26 @@ function ProvideContext({ children }: ProvideContextProps) {
 
   const contextValue: ProductContextType = {
     products,
+    cart,
     totalItems,
     totalPrices,
     pageIsProducts,
-    cart,
-    setCart,
+    setPageIsProducts,
     setProducts,
+    setCart,
     addToCart,
     removeFromCart,
-    setPageIsProducts,
     updateItemInCart,
   };
 
   return (
     <ProductContext.Provider value={contextValue}>
-      <section>{children}</section>
+      {children}
     </ProductContext.Provider>
   );
 }
 
-function useProducts() {
+function useProducts(): ProductContextType {
   const context = useContext(ProductContext);
   if (!context) {
     throw new Error("useProducts must be used within a ProvideContext");
@@ -122,4 +118,4 @@ function useProducts() {
   return context;
 }
 
-export { ProvideContext, useProducts, ProductType };
+export { ProvideContext, useProducts };

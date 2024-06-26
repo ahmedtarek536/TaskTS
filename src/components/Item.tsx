@@ -1,10 +1,12 @@
-import { ProductType, useProducts } from "../Hooks/ProvideContext";
+import { useProducts } from "../Hooks/ProvideContext";
 
 interface ItemProps {
-  product: ProductType;
+  title: string;
+  img: string;
+  price: number;
 }
 
-function Item({ product }: ItemProps) {
+function Item({ product }: { product: ItemProps }) {
   const { addToCart } = useProducts();
   return (
     <div>
